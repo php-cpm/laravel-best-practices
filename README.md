@@ -1,159 +1,116 @@
 ![Laravel best practices](/images/logo-english.png?raw=true)
 
-Translations:
+切换语言:
 
+[English](https://github.com/alexeymezenin/laravel-best-practices)
 [Русский](russian.md)
 
+我们这里要讨论的并不是 Laravel 版的 SOLID 原则（想要了解更多 SOLID 原则细节<a href="https://www.jianshu.com/p/21573a0b2ad9" target="_blank" rel="noopener">查看这篇文章</a>）亦或是设计模式，而是 Laravel 实际开发中容易被忽略的最佳实践。
+<h3 id="toc_0">内容概览</h3>
+<ul>
+ 	<li><a href="http://laravelacademy.org/post/8464.html#toc_1">单一职责原则</a></li>
+ 	<li><a href="http://laravelacademy.org/post/8464.html#toc_2">胖模型，瘦控制器</a></li>
+ 	<li><a href="http://laravelacademy.org/post/8464.html#toc_3">验证</a></li>
+ 	<li><a href="http://laravelacademy.org/post/8464.html#toc_4">业务逻辑应该放到服务类</a></li>
+ 	<li><a href="http://laravelacademy.org/post/8464.html#toc_5">DRY（Don't Repeat Yourself，不要重复造轮子）</a></li>
+ 	<li><a href="http://laravelacademy.org/post/8464.html#toc_6">优先使用 Eloquent 而不是查询构建器和原生 SQL 查询，优先使用集合而不是数组</a></li>
+ 	<li><a href="http://laravelacademy.org/post/8464.html#toc_7">批量赋值</a></li>
+ 	<li><a href="http://laravelacademy.org/post/8464.html#toc_8">不要在 Blade 模板中执行查询 &amp; 使用渴求式加载（避免 N+1 问题）</a></li>
+ 	<li><a href="http://laravelacademy.org/post/8464.html#toc_9">注释代码</a></li>
+ 	<li><a href="http://laravelacademy.org/post/8464.html#toc_10">不要把 JS 和 CSS 代码放到 Blade 模板里面，不要在 PHP 类中写 HTML 代码</a></li>
+ 	<li><a href="http://laravelacademy.org/post/8464.html#toc_11">使用配置、语言文件、常量而不是在代码中写死</a></li>
+ 	<li><a href="http://laravelacademy.org/post/8464.html#toc_12">使用社区接受的标准 Laravel 工具</a></li>
+ 	<li><a href="http://laravelacademy.org/post/8464.html#toc_13">遵循 Laravel 命名约定</a></li>
+ 	<li><a href="http://laravelacademy.org/post/8464.html#toc_14">使用更短的、可读性更好的语法</a></li>
+ 	<li><a href="http://laravelacademy.org/post/8464.html#toc_15">使用 IoC 容器或门面而不是创建新类</a></li>
+ 	<li><a href="http://laravelacademy.org/post/8464.html#toc_16">不要直接从 <code>.env</code> 文件获取数据</a></li>
+ 	<li><a href="http://laravelacademy.org/post/8464.html#toc_17">以标准格式存储日期，使用访问器和修改器来编辑日期格式</a></li>
+ 	<li><a href="http://laravelacademy.org/post/8464.html#toc_18">其他好的实践</a></li>
+</ul>
+<h3 id="toc_1">单一职责原则</h3>
+一个类和方法只负责一项职责。
 
-
-It's not a Laravel adaptation of SOLID principles, patterns etc. Here you'll find the best practices which are usually ignored in real life Laravel projects.
-
-## Contents
-
-[Single responsibility principle](#single-responsibility-principle)
-
-[Fat models, skinny controllers](#fat-models-skinny-controllers)
-
-[Validation](#validation)
-
-[Business logic should be in service class](#business-logic-should-be-in-service-class)
-
-[Don't repeat yourself (DRY)](#dont-repeat-yourself-dry)
-
-[Prefer to use Eloquent over using Query Builder and raw SQL queries. Prefer collections over arrays](#prefer-to-use-eloquent-over-using-query-builder-and-raw-sql-queries-prefer-collections-over-arrays)
-
-[Mass assignment](#mass-assignment)
-
-[Do not execute queries in Blade templates and use eager loading (N + 1 problem)](#do-not-execute-queries-in-blade-templates-and-use-eager-loading-n--1-problem)
-
-[Comment your code, but prefer descriptive method and variable names over comments](#comment-your-code-but-prefer-descriptive-method-and-variable-names-over-comments)
-
-[Do not put JS and CSS in Blade templates and do not put any HTML in PHP classes](#do-not-put-js-and-css-in-blade-templates-and-do-not-put-any-html-in-php-classes)
-
-[Use config and language files, constants instead of text in the code](#use-config-and-language-files-constants-instead-of-text-in-the-code)
-
-[Use standard Laravel tools accepted by community](#use-standard-laravel-tools-accepted-by-community)
-
-[Follow Laravel naming conventions](#follow-laravel-naming-conventions)
-
-[Use shorter and more readable syntax where possible](#use-shorter-and-more-readable-syntax-where-possible)
-
-[Use IoC container or facades instead of new Class](#use-ioc-container-or-facades-instead-of-new-class)
-
-[Do not get data from the `.env` file directly](#do-not-get-data-from-the-env-file-directly)
-
-[Store dates in the standard format. Use accessors and mutators to modify date format](#store-dates-in-the-standard-format-use-accessors-and-mutators-to-modify-date-format)
-
-[Other good practices](#other-good-practices)
-
-### **Single responsibility principle**
-
-A class and a method should have only one responsibility.
-
-Bad:
-
-```php
-public function getFullNameAttribute()
+坏代码：
+<pre><code>public function getFullNameAttribute()
 {
-    if (auth()->user() && auth()->user()->hasRole('client') && auth()->user()->isVerified()) {
-        return 'Mr. ' . $this->first_name . ' ' . $this->middle_name . ' ' $this->last_name;
+    if (auth()-&gt;user() &amp;&amp; auth()-&gt;user()-&gt;hasRole('client') &amp;&amp; auth()-&gt;user()-&gt;isVerified()) {
+        return 'Mr. ' . $this-&gt;first_name . ' ' . $this-&gt;middle_name . ' ' $this-&gt;last_name;
     } else {
-        return $this->first_name[0] . '. ' . $this->last_name;
+        return $this-&gt;first_name[0] . '. ' . $this-&gt;last_name;
     }
 }
-```
-
-Good:
-
-```php
-public function getFullNameAttribute()
+</code></pre>
+好代码：
+<pre><code>public function getFullNameAttribute()
 {
-    return $this->isVerifiedClient() ? $this->getFullNameLong() : $this->getFullNameShort();
+    return $this-&gt;isVerifiedClient() ? $this-&gt;getFullNameLong() : $this-&gt;getFullNameShort();
 }
 
 public function isVerfiedClient()
 {
-    return auth()->user() && auth()->user()->hasRole('client') && auth()->user()->isVerified();
+    return auth()-&gt;user() &amp;&amp; auth()-&gt;user()-&gt;hasRole('client') &amp;&amp; auth()-&gt;user()-&gt;isVerified();
 }
 
 public function getFullNameLong()
 {
-    return 'Mr. ' . $this->first_name . ' ' . $this->middle_name . ' ' . $this->last_name;
+    return 'Mr. ' . $this-&gt;first_name . ' ' . $this-&gt;middle_name . ' ' . $this-&gt;last_name;
 }
 
 public function getFullNameShort()
 {
-    return $this->first_name[0] . '. ' . $this->last_name;
+    return $this-&gt;first_name[0] . '. ' . $this-&gt;last_name;
 }
-```
+</code></pre>
+<h3 id="toc_2">胖模型、瘦控制器</h3>
+如果你使用的是查询构建器或原生 SQL 查询的话将所有 DB 相关逻辑都放到 Eloquent 模型或 Repository 类。
 
-[🔝 Back to contents](#contents)
-
-### **Fat models, skinny controllers**
-
-Put all DB related logic into Eloquent models or into Repository classes if you're using Query Builder or raw SQL queries.
-
-Bad:
-
-```php
-public function index()
+坏代码：
+<pre><code>public function index()
 {
     $clients = Client::verified()
-        ->with(['orders' => function ($q) {
-            $q->where('created_at', '>', Carbon::today()->subWeek());
+        -&gt;with(['orders' =&gt; function ($q) {
+            $q-&gt;where('created_at', '&gt;', Carbon::today()-&gt;subWeek());
         }])
-        ->get();
+        -&gt;get();
 
-    return view('index', ['clients' => $clients]);
+    return view('index', ['clients' =&gt; $clients]);
 }
-```
-
-Good:
-
-```php
-public function index()
+</code></pre>
+好代码：
+<pre><code>public function index()
 {
-    return view('index', ['clients' => $this->client->getWithNewOrders()]);
+    return view('index', ['clients' =&gt; $this-&gt;client-&gt;getWithNewOrders()]);
 }
 
 Class Client extends Model
 {
     public function getWithNewOrders()
     {
-        return $this->verified()
-            ->with(['orders' => function ($q) {
-                $q->where('created_at', '>', Carbon::today()->subWeek());
+        return $this-&gt;verified()
+            -&gt;with(['orders' =&gt; function ($q) {
+                $q-&gt;where('created_at', '&gt;', Carbon::today()-&gt;subWeek());
             }])
-            ->get();
+            -&gt;get();
     }
 }
-```
+</code></pre>
+<h3 id="toc_3">验证</h3>
+将验证逻辑从控制器转移到请求类。
 
-[🔝 Back to contents](#contents)
-
-### **Validation**
-
-Move validation from controllers to Request classes.
-
-Bad:
-
-```php
-public function store(Request $request)
+坏代码：
+<pre><code>public function store(Request $request)
 {
-    $request->validate([
-        'title' => 'required|unique:posts|max:255',
-        'body' => 'required',
-        'publish_at' => 'nullable|date',
+    $request-&gt;validate([
+        'title' =&gt; 'required|unique:posts|max:255',
+        'body' =&gt; 'required',
+        'publish_at' =&gt; 'nullable|date',
     ]);
 
     ....
 }
-```
-
-Good:
-
-```php
-public function store(PostRequest $request)
+</code></pre>
+好代码：
+<pre><code>public function store(PostRequest $request)
 {    
     ....
 }
@@ -163,39 +120,30 @@ class PostRequest extends Request
     public function rules()
     {
         return [
-            'title' => 'required|unique:posts|max:255',
-            'body' => 'required',
-            'publish_at' => 'nullable|date',
+            'title' =&gt; 'required|unique:posts|max:255',
+            'body' =&gt; 'required',
+            'publish_at' =&gt; 'nullable|date',
         ];
     }
 }
-```
+</code></pre>
+<h3 id="toc_4">业务逻辑需要放到服务类</h3>
+一个控制器只负责一项职责，所以需要把业务逻辑都转移到服务类中。
 
-[🔝 Back to contents](#contents)
-
-### **Business logic should be in service class**
-
-A controller must have only one responsibility, so move business logic from controllers to service classes.
-
-Bad:
-
-```php
-public function store(Request $request)
+坏代码：
+<pre><code>public function store(Request $request)
 {
-    if ($request->hasFile('image')) {
-        $request->file('image')->move(public_path('images') . 'temp');
+    if ($request-&gt;hasFile('image')) {
+        $request-&gt;file('image')-&gt;move(public_path('images') . 'temp');
     }
-    
+
     ....
 }
-```
-
-Good:
-
-```php
-public function store(Request $request)
+</code></pre>
+好代码：
+<pre><code>public function store(Request $request)
 {
-    $this->articleService->handleUploadedImage($request->file('image'));
+    $this-&gt;articleService-&gt;handleUploadedImage($request-&gt;file('image'));
 
     ....
 }
@@ -205,65 +153,50 @@ class ArticleService
     public function handleUploadedImage($image)
     {
         if (!is_null($image)) {
-            $image->move(public_path('images') . 'temp');
+            $image-&gt;move(public_path('images') . 'temp');
         }
     }
 }
-```
+</code></pre>
+<h3 id="toc_5">DRY</h3>
+尽可能复用代码，单一职责原则可以帮助你避免重复，此外，尽可能复用 Blade 模板，使用 Eloquent 作用域。
 
-[🔝 Back to contents](#contents)
-
-### **Don't repeat yourself (DRY)**
-
-Reuse code when you can. SRP is helping you to avoid duplication. Also, reuse Blade templates, use Eloquent scopes etc.
-
-Bad:
-
-```php
-public function getActive()
+坏代码：
+<pre><code>public function getActive()
 {
-    return $this->where('verified', 1)->whereNotNull('deleted_at')->get();
+    return $this-&gt;where('verified', 1)-&gt;whereNotNull('deleted_at')-&gt;get();
 }
 
 public function getArticles()
 {
-    return $this->whereHas('user', function ($q) {
-            $q->where('verified', 1)->whereNotNull('deleted_at');
-        })->get();
+    return $this-&gt;whereHas('user', function ($q) {
+            $q-&gt;where('verified', 1)-&gt;whereNotNull('deleted_at');
+        })-&gt;get();
 }
-```
-
-Good:
-
-```php
-public function scopeActive($q)
+</code></pre>
+好代码：
+<pre><code>public function scopeActive($q)
 {
-    return $q->where('verified', 1)->whereNotNull('deleted_at');
+    return $q-&gt;where('verified', 1)-&gt;whereNotNull('deleted_at');
 }
 
 public function getActive()
 {
-    return $this->active()->get();
+    return $this-&gt;active()-&gt;get();
 }
 
 public function getArticles()
 {
-    return $this->whereHas('user', function ($q) {
-            $q->active();
-        })->get();
+    return $this-&gt;whereHas('user', function ($q) {
+            $q-&gt;active();
+        })-&gt;get();
 }
-```
+</code></pre>
+<h3 id="toc_6">优先使用 Eloquent 和 集合</h3>
+通过 Eloquent 可以编写出可读性和可维护性更好的代码，此外，Eloquent 还提供了强大的内置工具如软删除、事件、作用域等。
 
-[🔝 Back to contents](#contents)
-
-### **Prefer to use Eloquent over using Query Builder and raw SQL queries. Prefer collections over arrays**
-
-Eloquent allows you to write readable and maintainable code. Also, Eloquent has great built-in tools like soft deletes, events, scopes etc.
-
-Bad:
-
-```sql
-SELECT *
+坏代码：
+<pre><code>SELECT *
 FROM `articles`
 WHERE EXISTS (SELECT *
               FROM `users`
@@ -275,318 +208,478 @@ WHERE EXISTS (SELECT *
 AND `verified` = '1'
 AND `active` = '1'
 ORDER BY `created_at` DESC
-```
+</code></pre>
+好代码：
+<pre><code> Article::has('user.profile')-&gt;verified()-&gt;latest()-&gt;get();
+</code></pre>
+<h3 id="toc_7">批量赋值</h3>
+关于批量赋值细节可查看<a href="http://laravelacademy.org/post/8194.html#toc_11" target="_blank" rel="noopener">对应文档</a>。
 
-Good:
-
-```php
-Article::has('user.profile')->verified()->latest()->get();
-```
-
-[🔝 Back to contents](#contents)
-
-### **Mass assignment**
-
-Bad:
-
-```php
-$article = new Article;
-$article->title = $request->title;
-$article->content = $request->content;
-$article->verified = $request->verified;
+坏代码：
+<pre><code>$article = new Article;
+$article-&gt;title = $request-&gt;title;
+$article-&gt;content = $request-&gt;content;
+$article-&gt;verified = $request-&gt;verified;
 // Add category to article
-$article->category_id = $category->id;
-$article->save();
-```
-
-Good:
-
-```php
-$category->article()->create($request->all());
-```
-
-[🔝 Back to contents](#contents)
-
-### **Do not execute queries in Blade templates and use eager loading (N + 1 problem)**
-
-Bad (for 100 users, 101 DB queries will be executed):
-
-```php
-@foreach (User::all() as $user)
-    {{ $user->profile->name }}
+$article-&gt;category_id = $category-&gt;id;
+$article-&gt;save();
+</code></pre>
+好代码：
+<pre><code>$category-&gt;article()-&gt;create($request-&gt;all());
+</code></pre>
+<h3 id="toc_8">不要在 Blade 执行查询 &amp; 使用渴求式加载</h3>
+坏代码：
+<pre><code>@foreach (User::all() as $user)
+    {{ $user-&gt;profile-&gt;name }}
 @endforeach
-```
-
-Good (for 100 users, 2 DB queries will be executed):
-
-```php
-$users = User::with('profile')->get();
+</code></pre>
+好代码：
+<pre><code>$users = User::with('profile')-&gt;get();
 
 ...
 
 @foreach ($users as $user)
-    {{ $user->profile->name }}
+    {{ $user-&gt;profile-&gt;name }}
 @endforeach
-```
+</code></pre>
+<h3 id="toc_9">注释你的代码</h3>
+坏代码：
+<pre><code>if (count((array) $builder-&gt;getQuery()-&gt;joins) &gt; 0)
+</code></pre>
+好代码：
+<pre><code>// Determine if there are any joins.
+if (count((array) $builder-&gt;getQuery()-&gt;joins) &gt; 0)
+</code></pre>
+最佳：
+<pre><code>if ($this-&gt;hasJoins())
+</code></pre>
+<h3 id="toc_10">将前端代码和 PHP 代码分离：</h3>
+不要把 JS 和 CSS 代码写到 Blade 模板里，也不要在 PHP 类中编写 HTML 代码。
 
-[🔝 Back to contents](#contents)
+坏代码：
+<pre><code>let article = `{{ json_encode($article) }}`;
+</code></pre>
+好代码：
+<pre><code>&lt;input id="article" type="hidden" value="{{ json_encode($article) }}"&gt;
 
-### **Comment your code, but prefer descriptive method and variable names over comments**
+或者
 
-Bad:
-
-```php
-if (count((array) $builder->getQuery()->joins) > 0)
-```
-
-Better:
-
-```php
-// Determine if there are any joins.
-if (count((array) $builder->getQuery()->joins) > 0)
-```
-
-Good:
-
-```php
-if ($this->hasJoins())
-```
-
-[🔝 Back to contents](#contents)
-
-### **Do not put JS and CSS in Blade templates and do not put any HTML in PHP classes**
-
-Bad:
-
-```php
-let article = `{{ json_encode($article) }}`;
-```
-
-Better:
-
-```php
-<input id="article" type="hidden" value="{{ json_encode($article) }}">
-
-Or
-
-<button class="js-fav-article" data-article="{{ json_encode($article) }}">{{ $article->name }}<button>
-```
-
-In a Javascript file:
-
-```php
-let article = $('#article').val();
-```
-
-The best way is to use specialized PHP to JS package to transfer the data.
-
-[🔝 Back to contents](#contents)
-
-### **Use config and language files, constants instead of text in the code**
-
-Bad:
-
-```php
-public function isNormal()
+&lt;button class="js-fav-article" data-article="{{ json_encode($article) }}"&gt;{{ $article-&gt;name }}&lt;button&gt;
+</code></pre>
+在 JavaScript 文件里：
+<pre><code>let article = $('#article').val();
+</code></pre>
+<h3 id="toc_11">使用配置、语言文件和常量取代硬编码</h3>
+坏代码：
+<pre><code>public function isNormal()
 {
-    return $article->type === 'normal';
+    return $article-&gt;type === 'normal';
 }
 
-return back()->with('message', 'Your article has been added!');
-```
-
-Good:
-
-```php
-public function isNormal()
+return back()-&gt;with('message', 'Your article has been added!');
+</code></pre>
+好代码：
+<pre><code>public function isNormal()
 {
-    return $article->type === Article::TYPE_NORMAL;
+    return $article-&gt;type === Article::TYPE_NORMAL;
 }
 
-return back()->with('message', __('app.article_added'));
-```
+return back()-&gt;with('message', __('app.article_added'));
+</code></pre>
+<h3 id="toc_12">使用被社区接受的标准 Laravel 工具</h3>
+优先使用 Laravel 内置功能和社区版扩展包，其次才是第三方扩展包和工具。这样做的好处是降低以后的学习和维护成本。
+<table>
+<thead>
+<tr>
+<th>任务</th>
+<th>标准工具</th>
+<th>第三方工具</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>授权</td>
+<td>策略类</td>
+<td>Entrust、Sentinel等</td>
+</tr>
+<tr>
+<td>编译资源</td>
+<td>Laravel Mix</td>
+<td>Grunt、Gulp等</td>
+</tr>
+<tr>
+<td>开发环境</td>
+<td>Homestead</td>
+<td>Docker</td>
+</tr>
+<tr>
+<td>部署</td>
+<td>Laravel Forge</td>
+<td>Deployer等</td>
+</tr>
+<tr>
+<td>单元测试</td>
+<td>PHPUnit、Mockery</td>
+<td>Phpspec</td>
+</tr>
+<tr>
+<td>浏览器测试</td>
+<td>Laravel Dusk</td>
+<td>Codeception</td>
+</tr>
+<tr>
+<td>DB</td>
+<td>Eloquent</td>
+<td>SQL、Doctrine</td>
+</tr>
+<tr>
+<td>模板</td>
+<td>Blade</td>
+<td>Twig</td>
+</tr>
+<tr>
+<td>处理数据</td>
+<td>Laravel集合</td>
+<td>数组</td>
+</tr>
+<tr>
+<td>表单验证</td>
+<td>请求类</td>
+<td>第三方扩展包、控制器中验证</td>
+</tr>
+<tr>
+<td>认证</td>
+<td>内置功能</td>
+<td>第三方扩展包、你自己的解决方案</td>
+</tr>
+<tr>
+<td>API认证</td>
+<td>Laravel Passport</td>
+<td>第三方 JWT 和 OAuth 扩展包</td>
+</tr>
+<tr>
+<td>创建API</td>
+<td>内置功能</td>
+<td>Dingo API和类似扩展包</td>
+</tr>
+<tr>
+<td>处理DB结构</td>
+<td>迁移</td>
+<td>直接操作DB</td>
+</tr>
+<tr>
+<td>本地化</td>
+<td>内置功能</td>
+<td>第三方工具</td>
+</tr>
+<tr>
+<td>实时用户接口</td>
+<td>Laravel Echo、Pusher</td>
+<td>第三方直接处理 WebSocket的扩展包</td>
+</tr>
+<tr>
+<td>生成测试数据</td>
+<td>填充类、模型工厂、Faker</td>
+<td>手动创建测试数据</td>
+</tr>
+<tr>
+<td>任务调度</td>
+<td>Laravel Task Scheduler</td>
+<td>脚本或第三方扩展包</td>
+</tr>
+<tr>
+<td>DB</td>
+<td>MySQL、PostgreSQL、SQLite、SQL Server</td>
+<td>MongoDB</td>
+</tr>
+</tbody>
+</table>
+<h3 id="toc_13">遵循 Laravel 命名约定</h3>
+遵循 <a href="http://www.php-fig.org/psr/psr-2/" target="_blank" rel="noopener">PSR 标准</a>。此外，还要遵循 Laravel 社区版的命名约定：
+<table>
+<thead>
+<tr>
+<th>What</th>
+<th>How</th>
+<th>Good</th>
+<th>Bad</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>控制器</td>
+<td>单数</td>
+<td>ArticleController</td>
+<td><del>ArticlesController</del></td>
+</tr>
+<tr>
+<td>路由</td>
+<td>复数</td>
+<td>articles/1</td>
+<td><del>article/1</del></td>
+</tr>
+<tr>
+<td>命名路由</td>
+<td>下划线+'.'号分隔</td>
+<td>users.show_active</td>
+<td><del>users.show-active,show-active-users</del></td>
+</tr>
+<tr>
+<td>模型</td>
+<td>单数</td>
+<td>User</td>
+<td><del>Users</del></td>
+</tr>
+<tr>
+<td>一对一关联</td>
+<td>单数</td>
+<td>articleComment</td>
+<td><del>articleComments,article_comment</del></td>
+</tr>
+<tr>
+<td>其他关联关系</td>
+<td>复数</td>
+<td>articleComments</td>
+<td><del>articleComment,article_comments</del></td>
+</tr>
+<tr>
+<td>数据表</td>
+<td>复数</td>
+<td>article_comments</td>
+<td><del>article_comment,articleComments</del></td>
+</tr>
+<tr>
+<td>中间表</td>
+<td>按字母表排序的单数格式</td>
+<td>article_user</td>
+<td><del>user_article,article_users</del></td>
+</tr>
+<tr>
+<td>表字段</td>
+<td>下划线，不带模型名</td>
+<td>meta_title</td>
+<td><del>MetaTitle; article_meta_title</del></td>
+</tr>
+<tr>
+<td>外键</td>
+<td>单数、带_id后缀</td>
+<td>article_id</td>
+<td><del>ArticleId, id_article, articles_id</del></td>
+</tr>
+<tr>
+<td>主键</td>
+<td>-</td>
+<td>id</td>
+<td><del>custom_id</del></td>
+</tr>
+<tr>
+<td>迁移</td>
+<td>-</td>
+<td>2017_01_01_000000_create_articles_table</td>
+<td><del>2017_01_01_000000_articles</del></td>
+</tr>
+<tr>
+<td>方法</td>
+<td>驼峰</td>
+<td>getAll</td>
+<td><del>get_all</del></td>
+</tr>
+<tr>
+<td>资源类方法</td>
+<td><a href="http://laravelacademy.org/post/7836.html#toc_6" target="_blank" rel="noopener">文档</a></td>
+<td>store</td>
+<td><del>saveArticle</del></td>
+</tr>
+<tr>
+<td>测试类方法</td>
+<td>驼峰</td>
+<td>testGuestCannotSeeArticle</td>
+<td><del>test_guest_cannot_see_article</del></td>
+</tr>
+<tr>
+<td>变量</td>
+<td>驼峰</td>
+<td>$articlesWithAuthor</td>
+<td><del>$articles_with_author</del></td>
+</tr>
+<tr>
+<td>集合</td>
+<td>复数</td>
+<td>$activeUsers = User::active()-&gt;get()</td>
+<td><del>$active, $data</del></td>
+</tr>
+<tr>
+<td>对象</td>
+<td>单数</td>
+<td>$activeUser = User::active()-&gt;first()</td>
+<td><del>$users, $obj</del></td>
+</tr>
+<tr>
+<td>配置和语言文件索引</td>
+<td>下划线</td>
+<td>articles_enabled</td>
+<td><del>ArticlesEnabled; articles-enabled</del></td>
+</tr>
+<tr>
+<td>视图</td>
+<td>下划线</td>
+<td>show_filtered.blade.php</td>
+<td><del>showFiltered.blade.php, show-filtered.blade.php</del></td>
+</tr>
+<tr>
+<td>配置</td>
+<td>下划线</td>
+<td>google_calendar.php</td>
+<td><del>googleCalendar.php, google-calendar.php</del></td>
+</tr>
+<tr>
+<td>契约（接口）</td>
+<td>形容词或名词</td>
+<td>Authenticatable</td>
+<td><del>AuthenticationInterface, IAuthentication</del></td>
+</tr>
+<tr>
+<td>Trait</td>
+<td>形容词</td>
+<td>Notifiable</td>
+<td><del>NotificationTrait</del></td>
+</tr>
+</tbody>
+</table>
+<h3 id="toc_14">使用缩写或可读性更好的语法</h3>
+坏代码：
+<pre><code>$request-&gt;session()-&gt;get('cart');
+$request-&gt;input('name');
+</code></pre>
+好代码：
+<pre><code>session('cart');
+$request-&gt;name;
+</code></pre>
+更多示例：
+<table>
+<thead>
+<tr>
+<th>通用语法</th>
+<th>可读性更好的</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Session::get('cart')</code></td>
+<td><code>session('cart')</code></td>
+</tr>
+<tr>
+<td><code>$request-&gt;session()-&gt;get('cart')</code></td>
+<td><code>session('cart')</code></td>
+</tr>
+<tr>
+<td><code>Session::put('cart', $data)</code></td>
+<td><code>session(['cart' =&gt; $data])</code></td>
+</tr>
+<tr>
+<td><code>$request-&gt;input('name'), Request::get('name')</code></td>
+<td><code>$request-&gt;name, request('name')</code></td>
+</tr>
+<tr>
+<td><code>return Redirect::back()</code></td>
+<td><code>return back()</code></td>
+</tr>
+<tr>
+<td><code>is_null($object-&gt;relation) ? $object-&gt;relation-&gt;id : null }</code></td>
+<td><code>optional($object-&gt;relation)-&gt;id</code></td>
+</tr>
+<tr>
+<td><code>return view('index')-&gt;with('title', $title)-&gt;with('client', $client)</code></td>
+<td><code>return view('index', compact('title', 'client'))</code></td>
+</tr>
+<tr>
+<td><code>$request-&gt;has('value') ? $request-&gt;value : 'default';</code></td>
+<td><code>$request-&gt;get('value', 'default')</code></td>
+</tr>
+<tr>
+<td><code>Carbon::now(), Carbon::today()</code></td>
+<td><code>now(), today()</code></td>
+</tr>
+<tr>
+<td><code>App::make('Class')</code></td>
+<td><code>app('Class')</code></td>
+</tr>
+<tr>
+<td><code>-&gt;where('column', '=', 1)</code></td>
+<td><code>-&gt;where('column', 1)</code></td>
+</tr>
+<tr>
+<td><code>-&gt;orderBy('created_at', 'desc')</code></td>
+<td><code>-&gt;latest()</code></td>
+</tr>
+<tr>
+<td><code>-&gt;orderBy('age', 'desc')</code></td>
+<td><code>-&gt;latest('age')</code></td>
+</tr>
+<tr>
+<td><code>-&gt;orderBy('created_at', 'asc')</code></td>
+<td><code>-&gt;oldest()</code></td>
+</tr>
+<tr>
+<td><code>-&gt;select('id', 'name')-&gt;get()</code></td>
+<td><code>-&gt;get(['id', 'name'])</code></td>
+</tr>
+<tr>
+<td><code>-&gt;first()-&gt;name</code></td>
+<td><code>-&gt;value('name')</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="toc_15">使用 IoC 容器或门面</h3>
+自己创建新的类会导致代码耦合度高，且难于测试，取而代之地，我们可以使用 IoC 容器或门面。
 
-[🔝 Back to contents](#contents)
-
-### **Use standard Laravel tools accepted by community**
-
-Prefer to use built-in Laravel functionality and community packages instead of using 3rd party packages and tools. Any developer who will work with your app in the future will need to learn new tools. Also, chances to get help from the Laravel community are significantly lower when you're using a 3rd party package or tool. Do not make your client pay for that.
-
-Task | Standard tools | 3rd party tools
------------- | ------------- | -------------
-Authorization | Policies | Entrust, Sentinel and other packages
-Compiling assets | Laravel Mix | Grunt, Gulp, 3rd party packages
-Development Environment | Homestead | Docker
-Deployment | Laravel Forge | Deployer and other solutions
-Unit testing | PHPUnit, Mockery | Phpspec
-Browser testing | Laravel Dusk | Codeception
-DB | Eloquent | SQL, Doctrine
-Templates | Blade | Twig
-Working with data | Laravel collections | Arrays
-Form validation | Request classes | 3rd party packages, validation in controller
-Authentication | Built-in | 3rd party packages, your own solution
-API authentication | Laravel Passport | 3rd party JWT and OAuth packages
-Creating API | Built-in | Dingo API and similar packages
-Working with DB structure | Migrations | Working with DB structure directly
-Localization | Built-in | 3rd party packages
-Realtime user interfaces | Laravel Echo, Pusher | 3rd party packages and working with WebSockets directly
-Generating testing data | Seeder classes, Model Factories, Faker | Creating testing data manually
-Task scheduling | Laravel Task Scheduler | Scripts and 3rd party packages
-DB | MySQL, PostgreSQL, SQLite, SQL Server | MongoDB
-
-[🔝 Back to contents](#contents)
-
-### **Follow Laravel naming conventions**
-
- Follow [PSR standards](http://www.php-fig.org/psr/psr-2/).
- 
- Also, follow naming conventions accepted by Laravel community:
-
-What | How | Good | Bad
------------- | ------------- | ------------- | -------------
-Controller | singular | ArticleController | ~~ArticlesController~~
-Route | plural | articles/1 | ~~article/1~~
-Named route | snake_case with dot notation | users.show_active | ~~users.show-active, show-active-users~~
-Model | singular | User | ~~Users~~
-hasOne or belongsTo relationship | singular | articleComment | ~~articleComments, article_comment~~
-All other relationships | plural | articleComments | ~~articleComment, article_comments~~
-Table | plural | article_comments | ~~article_comment, articleComments~~
-Pivot table | singular model names in alphabetical order | article_user | ~~user_article, articles_users~~
-Table column | snake_case without model name | meta_title | ~~MetaTitle; article_meta_title~~
-Foreign key | singular model name with _id suffix | article_id | ~~ArticleId, id_article, articles_id~~
-Primary key | - | id | ~~custom_id~~
-Migration | - | 2017_01_01_000000_create_articles_table | ~~2017_01_01_000000_articles~~
-Method | camelCase | getAll | ~~get_all~~
-Method in resource controller | [table](https://laravel.com/docs/master/controllers#resource-controllers) | store | ~~saveArticle~~
-Method in test class | camelCase | testGuestCannotSeeArticle | ~~test_guest_cannot_see_article~~
-Variable | camelCase | $articlesWithAuthor | ~~$articles_with_author~~
-Collection | descriptive, plural | $activeUsers = User::active()->get() | ~~$active, $data~~
-Object | descriptive, singular | $activeUser = User::active()->first() | ~~$users, $obj~~
-Config and language files index | snake_case | articles_enabled | ~~ArticlesEnabled; articles-enabled~~
-View | snake_case | show_filtered.blade.php | ~~showFiltered.blade.php, show-filtered.blade.php~~
-Config | snake_case | google_calendar.php | ~~googleCalendar.php, google-calendar.php~~
-Contract (interface) | adjective or noun | Authenticatable | ~~AuthenticationInterface, IAuthentication~~
-Trait | adjective | Notifiable | ~~NotificationTrait~~
-
-[🔝 Back to contents](#contents)
-
-### **Use shorter and more readable syntax where possible**
-
-Bad:
-
-```php
-$request->session()->get('cart');
-$request->input('name');
-```
-
-Good:
-
-```php
-session('cart');
-$request->name;
-```
-
-More examples:
-
-Common syntax | Shorter and more readable syntax
------------- | -------------
-`Session::get('cart')` | `session('cart')`
-`$request->session()->get('cart')` | `session('cart')`
-`Session::put('cart', $data)` | `session(['cart' => $data])`
-`$request->input('name'), Request::get('name')` | `$request->name, request('name')`
-`return Redirect::back()` | `return back()`
-`is_null($object->relation) ? $object->relation->id : null }` | `optional($object->relation)->id`
-`return view('index')->with('title', $title)->with('client', $client)` | `return view('index', compact('title', 'client'))`
-`$request->has('value') ? $request->value : 'default';` | `$request->get('value', 'default')`
-`Carbon::now(), Carbon::today()` | `now(), today()`
-`App::make('Class')` | `app('Class')`
-`->where('column', '=', 1)` | `->where('column', 1)`
-`->orderBy('created_at', 'desc')` | `->latest()`
-`->orderBy('age', 'desc')` | `->latest('age')`
-`->orderBy('created_at', 'asc')` | `->oldest()`
-`->select('id', 'name')->get()` | `->get(['id', 'name'])`
-`->first()->name` | `->value('name')`
-
-[🔝 Back to contents](#contents)
-
-### **Use IoC container or facades instead of new Class**
-
-new Class syntax creates tight coupling between classes and complicates testing. Use IoC container or facades instead.
-
-Bad:
-
-```php
-$user = new User;
-$user->create($request->all());
-```
-
-Good:
-
-```php
-public function __construct(User $user)
+坏代码：
+<pre><code>$user = new User;
+$user-&gt;create($request-&gt;all());
+</code></pre>
+好代码：
+<pre><code>public function __construct(User $user)
 {
-    $this->user = $user;
+    $this-&gt;user = $user;
 }
 
 ....
 
-$this->user->create($request->all());
-```
+$this-&gt;user-&gt;create($request-&gt;all());   
+</code></pre>
+<h3 id="toc_16">不要从直接从 .env 获取数据</h3>
+传递数据到配置文件然后使用 <code>config</code> 辅助函数获取数据。
 
-[🔝 Back to contents](#contents)
-
-### **Do not get data from the `.env` file directly**
-
-Pass the data to config files instead and then use the `config()` helper function to use the data in an application.
-
-Bad:
-
-```php
-$apiKey = env('API_KEY');
-```
-
-Good:
-
-```php
-// config/api.php
-'key' => env('API_KEY'),
+坏代码：
+<pre><code>$apiKey = env('API_KEY');
+</code></pre>
+好代码：
+<pre><code>// config/api.php
+'key' =&gt; env('API_KEY'),
 
 // Use the data
 $apiKey = config('api.key');
-```
+</code></pre>
+<h3 id="toc_17">以标准格式存储日期</h3>
+使用访问器和修改器来编辑日期格式。
 
-[🔝 Back to contents](#contents)
-
-### **Store dates in the standard format. Use accessors and mutators to modify date format**
-
-Bad:
-
-```php
-{{ Carbon::createFromFormat('Y-d-m H-i', $object->ordered_at)->toDateString() }}
-{{ Carbon::createFromFormat('Y-d-m H-i', $object->ordered_at)->format('m-d') }}
-```
-
-Good:
-
-```php
-// Model
+坏代码：
+<pre><code>{{ Carbon::createFromFormat('Y-d-m H-i', $object-&gt;ordered_at)-&gt;toDateString() }}
+{{ Carbon::createFromFormat('Y-d-m H-i', $object-&gt;ordered_at)-&gt;format('m-d') }}
+</code></pre>
+好代码：
+<pre><code>// Model
 protected $dates = ['ordered_at', 'created_at', 'updated_at']
 public function getMonthDayAttribute($date)
 {
-    return $date->format('m-d');
+    return $date-&gt;format('m-d');
 }
 
 // View
-{{ $object->ordered_at->toDateString() }}
-{{ $object->ordered_at->monthDay }}
-```
+{{ $object-&gt;ordered_at-&gt;toDateString() }}
+{{ $object-&gt;ordered_at-&gt;monthDay }}
+</code></pre>
+<h3 id="toc_18">其他好的实践</h3>
+不要把任何业务逻辑写到路由文件中。
 
-[🔝 Back to contents](#contents)
-
-### **Other good practices**
-
-Never put any logic in routes files.
-
-Minimize usage of vanilla PHP in Blade templates.
-
-[🔝 Back to contents](#contents)
+在 Blade 模板中尽量不要编写原生 PHP。
