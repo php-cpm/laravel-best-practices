@@ -2,8 +2,8 @@
 
 切换语言:
 
-[English](https://github.com/alexeymezenin/laravel-best-practices)
-[Русский](russian.md)
++ [English](https://github.com/alexeymezenin/laravel-best-practices)
++ [Русский](russian.md)
 
 我们这里要讨论的并不是 Laravel 版的 SOLID 原则（想要了解更多 SOLID 原则细节<a href="https://www.jianshu.com/p/21573a0b2ad9" target="_blank" rel="noopener">查看这篇文章</a>）亦或是设计模式，而是 Laravel 实际开发中容易被忽略的最佳实践。
 <h3 id="toc_0">内容概览</h3>
