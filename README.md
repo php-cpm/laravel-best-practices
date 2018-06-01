@@ -14,17 +14,17 @@
  - [胖模型，瘦控制器](#胖模型瘦控制器)
  - [验证](#验证)
  - [业务逻辑应该放到服务类](#业务逻辑应该放到服务类)
- - [不要重复造轮子(DRY)](#不要重复造轮子DRY)
- - [优先使用 Eloquent 而不是查询构建器和原生 SQL 查询，优先使用集合而不是数组](#优先使用-Eloquent-而不是查询构建器和原生-SQL-查询优先使用集合而不是数组)
+ - [不要重复造轮子(DRY)](#不要重复造轮子dry)
+ - [优先使用 Eloquent 而不是查询构建器和原生 SQL 查询，优先使用集合而不是数组](#优先使用-eloquent-而不是查询构建器和原生-sql-查询优先使用集合而不是数组)
  - [批量赋值](#批量赋值)
- - [不要在 Blade 模板中执行查询，使用渴求式加载（避免 N+1 问题）](#不要在-Blade-模板中执行查询使用渴求式加载避免-N1-问题)
+ - [不要在 Blade 模板中执行查询，使用渴求式加载（避免 N+1 问题）](#不要在-blade-模板中执行查询使用渴求式加载避免-n1-问题)
  - [注释代码建议使用描述性的方法和变量名](#注释代码建议使用描述性的方法和变量名)
- - [不要把 JS 和 CSS 代码放到 Blade 模板里面，不要在 PHP 类中写 HTML 代码](#不要把-JS-和-CSS-代码放到-Blade-模板里面不要在-PHP-类中写-HTML-代码)
+ - [不要把 JS 和 CSS 代码放到 Blade 模板里面，不要在 PHP 类中写 HTML 代码](#不要把-js-和-css-代码放到-blade-模板里面不要在-php-类中写-html-代码)
  - [使用配置、语言文件、常量而不是在代码中写死](#使用配置语言文件常量而不是在代码中写死)
- - [使用社区认可的标准 Laravel 工具](#使用社区认可的标准-Laravel-工具)
- - [遵循 Laravel 命名约定](#遵循-Laravel-命名约定)
+ - [使用社区认可的标准 Laravel 工具](#使用社区认可的标准-laravel-工具)
+ - [遵循 Laravel 命名约定](#遵循-laravel-命名约定)
  - [使用更短的、可读性更好的语法](#使用更短的可读性更好的语法)
- - [使用 IoC 容器或门面而不是创建新类](#使用-IoC-容器或门面而不是创建新类)
+ - [使用 IoC 容器或门面而不是创建新类](#使用-ioc-容器或门面而不是创建新类)
  - [不要直接从 `.env` 文件获取数据](#不要直接从-env-文件获取数据)
  - [以标准格式存储日期，使用访问器和修改器来编辑日期格式](#以标准格式存储日期使用访问器和修改器来编辑日期格式)
  - [其他好的实践](#其他好的实践)
@@ -75,7 +75,7 @@ public function getFullNameShort()
 
 如果你使用的是查询构建器或原生 SQL 查询的话将所有 DB 相关逻辑都放到 Eloquent 模型或 Repository 类。
 
-Bad:
+坏代码：
 
 ```php
 public function index()
@@ -90,7 +90,7 @@ public function index()
 }
 ```
 
-Good:
+好代码：
 
 ```php
 public function index()
@@ -114,10 +114,11 @@ Class Client extends Model
 [🔝 返回目录](#目录)
 
 ### **验证**
+
 将验证逻辑从控制器转移到请求类。
 
 
-Bad:
+坏代码：
 
 ```php
 public function store(Request $request)
@@ -132,7 +133,7 @@ public function store(Request $request)
 }
 ```
 
-Good:
+好代码：
 
 ```php
 public function store(PostRequest $request)
@@ -156,10 +157,11 @@ class PostRequest extends Request
 [🔝 返回目录](#目录)
 
 ### **业务逻辑应该放到服务类**
+
 一个控制器只负责一项职责，所以需要把业务逻辑都转移到服务类中。
 
 
-Bad:
+坏代码：
 
 ```php
 public function store(Request $request)
@@ -172,7 +174,7 @@ public function store(Request $request)
 }
 ```
 
-Good:
+好代码：
 
 ```php
 public function store(Request $request)
@@ -196,10 +198,10 @@ class ArticleService
 [🔝 返回目录](#目录)
 
 ### **不要重复造轮子(DRY)**
+
 尽可能复用代码，单一职责原则可以帮助你避免重复，此外，尽可能复用 Blade 模板，使用 Eloquent 作用域。
 
-
-Bad:
+坏代码：
 
 ```php
 public function getActive()
@@ -215,7 +217,7 @@ public function getArticles()
 }
 ```
 
-Good:
+好代码：
 
 ```php
 public function scopeActive($q)
@@ -239,9 +241,10 @@ public function getArticles()
 [🔝 返回目录](#目录)
 
 ### **优先使用 Eloquent 而不是查询构建器和原生 SQL 查询，优先使用集合而不是数组**
+
 通过 Eloquent 可以编写出可读性和可维护性更好的代码，此外，Eloquent 还提供了强大的内置工具如软删除、事件、作用域等。
 
-Bad:
+坏代码：
 
 ```sql
 SELECT *
@@ -258,7 +261,7 @@ AND `active` = '1'
 ORDER BY `created_at` DESC
 ```
 
-Good:
+好代码：
 
 ```php
 Article::has('user.profile')->verified()->latest()->get();
@@ -270,7 +273,7 @@ Article::has('user.profile')->verified()->latest()->get();
 
 关于批量赋值细节可查看<a href="http://laravelacademy.org/post/8194.html#toc_11" target="_blank" rel="noopener">对应文档</a>。
 
-Bad:
+坏代码：
 
 ```php
 $article = new Article;
@@ -282,7 +285,7 @@ $article->category_id = $category->id;
 $article->save();
 ```
 
-Good:
+好代码：
 
 ```php
 $category->article()->create($request->all());
@@ -316,7 +319,7 @@ $users = User::with('profile')->get();
 
 ### **注释代码建议使用描述性的方法和变量名**
 
-Bad:
+坏代码：
 
 ```php
 if (count((array) $builder->getQuery()->joins) > 0)
@@ -329,7 +332,7 @@ Better:
 if (count((array) $builder->getQuery()->joins) > 0)
 ```
 
-Good:
+好代码：
 
 ```php
 if ($this->hasJoins())
@@ -339,7 +342,7 @@ if ($this->hasJoins())
 
 ### **不要把 JS 和 CSS 代码放到 Blade 模板里面，不要在 PHP 类中写 HTML 代码**
 
-Bad:
+坏代码：
 
 ```php
 let article = `{{ json_encode($article) }}`;
@@ -360,12 +363,14 @@ Better:
 ```php
 let article = $('#article').val();
 ```
+
 最好是使用指定的 php 到 js 的包来传递数据
+
 [🔝 返回目录](#目录)
 
-<h3 id="toc_11">使用配置、语言文件和常量取代硬编码</h3>
+### **使用配置、语言文件、常量而不是在代码中写死**
 
-Bad:
+坏代码：
 
 ```php
 public function isNormal()
@@ -376,7 +381,7 @@ public function isNormal()
 return back()->with('message', 'Your article has been added!');
 ```
 
-Good:
+好代码：
 
 ```php
 public function isNormal()
@@ -388,7 +393,6 @@ return back()->with('message', __('app.article_added'));
 ```
 
 [🔝 返回目录](#目录)
-
 
 ### **使用社区认可的标准 Laravel 工具**
 
@@ -418,13 +422,11 @@ DB | MySQL, PostgreSQL, SQLite, SQL Server | MongoDB
 
 [🔝 返回目录](#目录)
 
-
 ### **遵循 Laravel 命名约定**
 
 遵循 [PSR 标准](http://www.php-fig.org/psr/psr-2/)。
 
 此外，还要遵循 Laravel 社区版的命名约定：
-
 
 什么 | 怎么做 | 好 | 坏
 ------------ | ------------- | ------------- | -------------
@@ -456,14 +458,14 @@ Trait | 形容词 | Notifiable | ~~NotificationTrait~~
 
 ### **使用更短的、可读性更好的语法**
 
-Bad:
+坏代码：
 
 ```php
 $request->session()->get('cart');
 $request->input('name');
 ```
 
-Good:
+好代码：
 
 ```php
 session('cart');
@@ -493,20 +495,18 @@ $request->name;
 
 [🔝 返回目录](#目录)
 
-
 ### **使用 IoC 容器或门面而不是创建新类**
 
 自己创建新的类会导致代码耦合度高，且难于测试，取而代之地，我们可以使用 IoC 容器或门面。
 
-
-Bad:
+坏代码：
 
 ```php
 $user = new User;
 $user->create($request->all());
 ```
 
-Good:
+好代码：
 
 ```php
 public function __construct(User $user)
@@ -522,16 +522,17 @@ $this->user->create($request->all());
 [🔝 返回目录](#目录)
 
 ### **不要直接从 `.env` 文件获取数据**
+
 通过配置文件传递数据，然后使用 `config()` 辅助函数获取数据。
 
 
-Bad:
+坏代码：
 
 ```php
 $apiKey = env('API_KEY');
 ```
 
-Good:
+好代码：
 
 ```php
 // config/api.php
@@ -545,14 +546,14 @@ $apiKey = config('api.key');
 
 ### **以标准格式存储日期，使用访问器和修改器来编辑日期格式**
 
-Bad:
+坏代码：
 
 ```php
 {{ Carbon::createFromFormat('Y-d-m H-i', $object->ordered_at)->toDateString() }}
 {{ Carbon::createFromFormat('Y-d-m H-i', $object->ordered_at)->format('m-d') }}
 ```
 
-Good:
+好代码：
 
 ```php
 // Model
